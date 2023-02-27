@@ -1,0 +1,50 @@
+function [result,percentageAgree]=addToledger(Sensors,block, consensusRate)
+%% The function checks if the block is OK to be added to the ledger.
+% Consensus is used among all sensors. 
+% 
+% 
+prevHash = block.previous_hash;
+curHash = block.hash;
+data = block.data;
+votes = zeros(1,length(Sensors));
+
+% Add To ledger
+
+for i=1:length(Sensors)-1 % the last one is the base station
+    Sensors(i).ledger.data = data;
+    Sensors(i).ledger.currentHash = curHash;
+    Sensors(i).ledger.previousHash = prevHash;
+%     if((Sensors(i).ledger.previousHash == 0) && ...
+%             (Sensors(i).ledger.data == 0) && ...
+%             (Sensors(i).ledger.currentHash == 0))
+%         Sensors(i).ledger.data = data;
+%         Sensors(i).ledger.currentHash = curHash;
+%         Sensors(i).ledger.previousHash = prevHash;
+%         disp('addToledger function first Round adding ledger');
+        
+%     else % Check prevoius information in ledger
+        disp('addToledger function voting');
+
+        oldData = Sensors(i).ledger.data;
+        oldPrevHash = Sensors(i).ledger.previousHash;
+        oldHash = Sensors(i).ledger.currentHash;
+        [~, ~,predOldHash] = DataHash(num2str(oldData),tic, 'SHA-256', 'ascii');
+        %if(strcmp(predOldHash, oldHash) && strcmp(predOldHas,prevHash))
+        if(strcmp(predOldHash, oldHash))
+            votes(i) = 1;
+        else
+            votes(i)=0;
+        end
+%     end
+end
+%% Check votes
+totalAgree = sum(votes);
+percentageAgree = round(100*totalAgree/length(Sensors));
+if(percentageAgree >= consensusRate)
+    result = 1;
+else
+    result = 0;
+end
+       
+   
+        
